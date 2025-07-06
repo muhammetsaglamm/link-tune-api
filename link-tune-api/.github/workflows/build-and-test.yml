@@ -41,3 +41,4 @@ jobs:
       # Sadece build ediyoruz, bir yere push'lamıyoruz (şimdilik).
       - name: Build Docker Image
         run: docker build -t linktune-api-ci .
+
