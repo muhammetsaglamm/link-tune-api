@@ -1,44 +1,27 @@
-# İş akışımıza bir isim veriyoruz. GitHub'ın "Actions" sekmesinde bu isimle görünecek.
 name: Java CI Build and Test
 
-# Bu iş akışının ne zaman tetikleneceğini belirtiyoruz.
 on:
-  # 'main' branch'ine her 'push' yapıldığında çalışsın.
   push:
     branches: [ "main" ]
-  # 'main' branch'ine yönelik her 'pull request' açıldığında çalışsın.
   pull_request:
     branches: [ "main" ]
 
-# Yapılacak işleri tanımlıyoruz.
 jobs:
-  # "build" adında bir iş tanımlıyoruz.
   build:
-    # Bu işin, GitHub tarafından sağlanan sanal bir Ubuntu makinesinde çalışacağını belirtiyoruz.
     runs-on: ubuntu-latest
 
-    # İşin adımlarını sıralıyoruz.
     steps:
-      # 1. Adım: Kodumuzu sanal makineye indir (checkout).
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Adım: Sanal makineye Java Development Kit (JDK) kur.
-      # Projemizle uyumlu olması için Java 21 kullanıyoruz.
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
 
-      # 3. Adım: Maven testlerini çalıştır.
-      # Bu, bizim "kalite kontrol" adımımız. Eğer bir test başarısız olursa, iş akışı burada durur ve hata verir.
       - name: Run Maven Tests
         run: mvn -B test
 
-      # 4. Adım (Opsiyonel ama önemli): Docker imajını build et.
-      # Bu adım, Dockerfile'ımızın geçerli olduğunu ve uygulamanın paketlenebildiğini doğrular.
-      # Sadece build ediyoruz, bir yere push'lamıyoruz (şimdilik).
       - name: Build Docker Image
         run: docker build -t linktune-api-ci .
-
