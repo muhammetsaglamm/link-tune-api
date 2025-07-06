@@ -1,0 +1,46 @@
+# Docker Compose dosya formatının versiyonunu belirtiyoruz.
+version: '3.8'
+
+# Bu dosyada yöneteceğimiz servisleri (konteynerleri) tanımlıyoruz.
+services:
+  # 1. Servis: Veritabanımız (PostgreSQL)
+  postgres:
+    image: postgres:14-alpine # Kullanacağımız hazır PostgreSQL imajı
+    container_name: linktune-db-compose # Konteynerin adı
+    environment:
+      # Veritabanı için gerekli ortam değişkenleri (şifre, kullanıcı vb.)
+      POSTGRES_USER: linktune
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: linktunedb
+    ports:
+      - "5433:5432" # Bilgisayarımızın 5432 portunu, konteynerin 5432 portuna bağla
+    volumes:
+      - postgres-data:/var/lib/postgresql/data # Verilerin kalıcı olması için bir volume bağlıyoruz
+
+  # 2. Servis: Önbelleğimiz (Redis)
+  redis:
+    image: redis:6.2-alpine # Kullanacağımız hazır Redis imajı
+    container_name: linktune-redis-compose
+    ports:
+      - "6379:6379" # Bilgisayarımızın 6379 portunu, konteynerin 6379 portuna bağla
+
+  # 3. Servis: Bizim uygulamamız (LinkTune API)
+  linktune-api:
+    build: . # Bu servisin imajını, bu dizindeki Dockerfile'dan kendin inşa et
+    container_name: linktune-api-compose
+    ports:
+      - "8080:8080" # Bilgisayarımızın 8080 portunu, konteynerin 8080 portuna bağla
+    environment:
+      # Uygulamamızın veritabanına bağlanması için gerekli ortam değişkenleri
+      # DİKKAT: Artık 'localhost' yerine, servis adını ('postgres') kullanıyoruz!
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/linktunedb
+      SPRING_DATASOURCE_USERNAME: linktune
+      SPRING_DATASOURCE_PASSWORD: mysecretpassword
+      # Uygulamamızın Redis'e bağlanması için gerekli ortam değişkeni
+      SPRING_DATA_REDIS_HOST: redis
+    depends_on:
+      - postgres # Bu servis, 'postgres' servisi başladıktan SONRA başlasın
+
+# Veritabanı verilerinin kalıcı olarak saklanacağı volume'ü tanımlıyoruz.
+volumes:
+  postgres-data:
